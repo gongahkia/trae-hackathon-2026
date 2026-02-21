@@ -77,15 +77,8 @@ Rules:
 Respond ONLY with valid JSON, no markdown, no explanation."""
 
 
-async def _llm_generate(prompt: str, gemini_key: Optional[str], minimax_key: Optional[str]):
-    loop = asyncio.get_running_loop()
-    try:
-        return await asyncio.wait_for(
-            loop.run_in_executor(None, lambda: llm_manager.generate(prompt, gemini_key=gemini_key, minimax_key=minimax_key)),
-            timeout=30.0
-        )
-    except asyncio.TimeoutError:
-        raise HTTPException(status_code=504, detail="Generation timed out, please retry")
+def _llm_generate(prompt: str, gemini_key: Optional[str], minimax_key: Optional[str]):
+    return llm_manager.generate(prompt, gemini_key=gemini_key, minimax_key=minimax_key)
 
 
 @router.post("/api/generate/feed", response_model=FeedGenerateResponse)
@@ -104,7 +97,7 @@ async def generate_feed(
     prompt = f"{FEED_SYSTEM_PROMPT}\n\nPlatform: {platform}\n\nSource material:\n{source_text}"
 
     try:
-        response_text, provider = await _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
+        response_text, provider = _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
         logger.info(f"Feed generated using {provider}")
     except HTTPException:
         raise
@@ -125,7 +118,7 @@ async def generate_feed(
     except json.JSONDecodeError as e:
         logger.warning(f"JSON parse failed, retrying: {e}")
         try:
-            response_text, _ = await _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
+            response_text, _ = _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
             json_match = response_text.strip()
             if "```" in json_match:
                 json_match = json_match.split("```")[1]
@@ -170,7 +163,7 @@ Output as JSON array of strings, each being a complete prompt. Example:
 Respond ONLY with valid JSON array, no explanation, no markdown."""
 
     try:
-        response_text, provider = await _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
+        response_text, provider = _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
         logger.info(f"Recommendations generated using {provider}")
     except HTTPException:
         raise
@@ -216,7 +209,7 @@ async def generate_knowledge_graph(
     prompt = f"{KNOWLEDGE_GRAPH_SYSTEM_PROMPT}\n\nPosts:\n{posts_text}"
 
     try:
-        response_text, provider = await _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
+        response_text, provider = _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
         logger.info(f"Knowledge graph generated using {provider}")
     except HTTPException:
         raise
