@@ -77,11 +77,18 @@ export const api = {
       body: JSON.stringify({ url, restrict_to_document: restrictToDocument }),
     }),
 
-  generateFeed: (sessionId: string, platform: string, postCount: number = 10, keys?: ApiKeys) =>
+  generateFeed: (
+    sessionId: string,
+    platform: string,
+    postCount: number = 10,
+    keys?: ApiKeys,
+    signal?: AbortSignal
+  ) =>
     fetchApi<FeedGenerateResponse>("/api/generate/feed", {
       method: "POST",
       body: JSON.stringify({ session_id: sessionId, platform, post_count: postCount }),
       headers: buildKeyHeaders(keys),
+      signal,
     }),
 
   generateRecommendations: (sessionId: string, keys?: ApiKeys) =>

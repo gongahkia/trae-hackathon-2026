@@ -9,18 +9,19 @@ import { useSessionStore } from "@/store/session";
 export default function SavedPage() {
   const { savedPosts, history } = useSessionStore();
 
-  const groupedPosts = savedPosts.reduce(
-    (acc, post) => {
-      const session = history.find((h) => h.posts.some((p) => p.id === post.id));
-      const sessionId = session?.sessionId || "unknown";
-      if (!acc[sessionId]) {
-        acc[sessionId] = [];
-      }
-      acc[sessionId].push(post);
-      return acc;
-    },
-    {} as Record<string, typeof savedPosts>
-  );
+  const groupedPosts = savedPosts.reduce((acc, post) => {
+    const session = history.find((h) => h.posts.some((p) => p.id === post.id));
+    const sessionId = session?.sessionId || "unknown";
+    if (!acc[sessionId]) {
+      acc[sessionId] = {
+        sessionId,
+        sourceText: session?.sourceText || "Unknown source",
+        posts: [],
+      };
+    }
+    acc[sessionId].posts.push(post);
+    return acc;
+  }, {} as Record<string, { sessionId: string; sourceText: string; posts: typeof savedPosts }>);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,13 +55,23 @@ export default function SavedPage() {
             </p>
           </div>
         ) : (
-          Object.entries(groupedPosts).map(([sessionId, posts]) => (
-            <div key={sessionId} className="mb-8">
-              <h2 className="text-sm font-medium text-gray-500 mb-4">
-                {posts.length} saved post{posts.length !== 1 ? "s" : ""}
-              </h2>
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} platform={post.platform as "reddit" | "twitter"} />
+          Object.values(groupedPosts).map((group) => (
+            <div key={group.sessionId} className="mb-8">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-gray-700">
+                  {group.sourceText}
+                </h2>
+                <p className="text-xs text-gray-400">
+                  {group.posts.length} saved post{group.posts.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              {group.posts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  platform={post.platform as "reddit" | "twitter"}
+                  condensed
+                />
               ))}
             </div>
           ))

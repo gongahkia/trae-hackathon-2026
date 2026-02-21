@@ -23,6 +23,9 @@ export default function HomePage() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [generationError, setGenerationError] = useState("");
+  const [loadingStage, setLoadingStage] = useState<"idle" | "ingesting" | "generating">("idle");
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const { setSession, addToHistory, geminiApiKey, minimaxApiKey } = useSessionStore();
 
@@ -51,6 +54,10 @@ export default function HomePage() {
   const handleSubmit = async () => {
     setLoading(true);
     setError("");
+    setGenerationError("");
+
+    let stage: "ingesting" | "generating" = "ingesting";
+    setLoadingStage(stage);
 
     try {
       let sessionId: string;
@@ -85,8 +92,12 @@ export default function HomePage() {
         sourceText = response.source_text;
       }
 
+      stage = "generating";
+      setLoadingStage(stage);
+      const controller = new AbortController();
+      setAbortController(controller);
       const apiKeys = { geminiApiKey: geminiApiKey || undefined, minimaxApiKey: minimaxApiKey || undefined };
-      const feedResponse = await api.generateFeed(sessionId, platform, 10, apiKeys);
+      const feedResponse = await api.generateFeed(sessionId, platform, 10, apiKeys, controller.signal);
 
       setSession(sessionId, sourceText, platform, feedResponse.posts);
       addToHistory({
@@ -99,11 +110,42 @@ export default function HomePage() {
 
       router.push(`/feed/${sessionId}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return;
+      }
+      const message = err instanceof Error ? err.message : "An error occurred";
+      if (stage === "generating") {
+        setGenerationError(message);
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
+      setLoadingStage("idle");
+      setAbortController(null);
     }
   };
+
+  const handleCancelGeneration = () => {
+    abortController?.abort();
+    setLoading(false);
+    setLoadingStage("idle");
+    setAbortController(null);
+  };
+
+  if (generationError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 text-center">
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Generation failed</h1>
+          <p className="text-sm text-gray-500 mb-6">{generationError}</p>
+          <Button onClick={handleSubmit} className="w-full">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -255,12 +297,31 @@ export default function HomePage() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating your feed...
+                  {loadingStage === "ingesting" ? "Ingesting content..." : "Generating your feed..."}
                 </>
               ) : (
                 "Generate Feed"
               )}
             </Button>
+            {loadingStage === "generating" && (
+              <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
+                <span>Hang tight, we are crafting posts</span>
+                <Button variant="outline" size="sm" onClick={handleCancelGeneration}>
+                  Stop generation
+                </Button>
+              </div>
+            )}
+            {loadingStage === "generating" && (
+              <div className="mt-6 space-y-4">
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="rounded-lg border border-gray-200 bg-white p-4 animate-pulse">
+                    <div className="h-4 w-1/3 bg-gray-200 rounded" />
+                    <div className="mt-3 h-3 w-full bg-gray-200 rounded" />
+                    <div className="mt-2 h-3 w-5/6 bg-gray-200 rounded" />
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
