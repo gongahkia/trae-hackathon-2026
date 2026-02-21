@@ -55,18 +55,22 @@ Respond ONLY with valid JSON, no markdown, no explanation."""
 
 
 @router.post("/api/generate/feed", response_model=FeedGenerateResponse)
-async def generate_feed(request: FeedGenerateRequest):
+async def generate_feed(
+    request: FeedGenerateRequest,
+    x_gemini_api_key: Optional[str] = Header(None),
+    x_minimax_api_key: Optional[str] = Header(None),
+):
     session = get_session(request.session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+
     source_text = session.source_text
     platform = request.platform
-    
+
     prompt = f"{FEED_SYSTEM_PROMPT}\n\nPlatform: {platform}\n\nSource material:\n{source_text}"
-    
+
     try:
-        response_text, provider = llm_manager.generate(prompt)
+        response_text, provider = llm_manager.generate(prompt, gemini_key=x_gemini_api_key, minimax_key=x_minimax_api_key)
         logger.info(f"Feed generated using {provider}")
     except Exception as e:
         logger.error(f"Feed generation failed: {e}")
