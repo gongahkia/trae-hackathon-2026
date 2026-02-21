@@ -1,6 +1,6 @@
 from typing import Dict
 from datetime import datetime
-from src.models.schemas import Session
+from src.models.schemas import Session, PostSchema
 
 
 sessions: Dict[str, Session] = {}
@@ -24,4 +24,6 @@ def get_session(session_id: str) -> Session | None:
 
 def update_session_posts(session_id: str, posts: list) -> None:
     if session_id in sessions:
-        sessions[session_id].generated_posts = posts
+        sessions[session_id].generated_posts = [
+            PostSchema(**p) if isinstance(p, dict) else p for p in posts
+        ]

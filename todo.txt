@@ -1,3 +1,4 @@
+(A) Hook up minimax for content generation as well per the accepted API keys
 (A) Show a "You've reached the end" state after the last post card with recommendations section below it, which is then followed by a text bubble that lets users click similar prompts they then want to prompt next 
 (A) Render citations as small grey text links at bottom of PostCard, prefixed with "Source:" +frontend
 (A) Implement Like button on PostCard: clicking increments local upvote count, adds post.id to likedPostIds in Zustand store, animates heart/upvote icon +frontend

@@ -136,7 +136,7 @@ Output as JSON array of strings, each being a complete prompt. Example:
 Respond ONLY with valid JSON array, no explanation, no markdown."""
     
     try:
-        response_text, provider = llm_manager.generate(prompt)
+        response_text, provider = llm_manager.generate(prompt, gemini_key=x_gemini_api_key, minimax_key=x_minimax_api_key)
         logger.info(f"Recommendations generated using {provider}")
     except Exception as e:
         logger.error(f"Recommendations generation failed: {e}")

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUp, Bookmark, Plus, Loader2, Clock } from "lucide-react";
+import { ArrowUp, Bookmark, Plus, Loader2, Clock, Settings } from "lucide-react";
 import { PostCard } from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
 import { useSessionStore } from "@/store/session";
@@ -14,7 +14,7 @@ export default function FeedPage() {
   const router = useRouter();
   const sessionId = params.sessionId as string;
 
-  const { sessionId: storeSessionId, posts, platform, hiddenPostIds, setSession } =
+  const { sessionId: storeSessionId, posts, platform, hiddenPostIds, setSession, geminiApiKey, minimaxApiKey } =
     useSessionStore();
 
   const [recommendations, setRecommendations] = useState<string[]>([]);
@@ -46,7 +46,8 @@ export default function FeedPage() {
     const fetchRecommendations = async () => {
       if (!sessionId) return;
       try {
-        const response = await api.generateRecommendations(sessionId);
+        const apiKeys = { geminiApiKey: geminiApiKey || undefined, minimaxApiKey: minimaxApiKey || undefined };
+        const response = await api.generateRecommendations(sessionId, apiKeys);
         setRecommendations(response.recommendations);
       } catch (err) {
         console.error("Failed to fetch recommendations:", err);
@@ -56,7 +57,7 @@ export default function FeedPage() {
     };
 
     fetchRecommendations();
-  }, [sessionId]);
+  }, [sessionId, geminiApiKey, minimaxApiKey]);
 
   useEffect(() => {
     const handleScroll = () => {

@@ -25,6 +25,8 @@ interface SessionStore {
   likedPostIds: string[];
   dislikedReasons: DislikedReason[];
   history: SessionData[];
+  geminiApiKey: string;
+  minimaxApiKey: string;
 
   setSession: (sessionId: string, sourceText: string, platform: "reddit" | "twitter", posts: Post[]) => void;
   addSavedPost: (post: Post) => void;
@@ -32,6 +34,8 @@ interface SessionStore {
   toggleLike: (postId: string) => void;
   hidePost: (postId: string, reason: DislikedReason["reason"]) => void;
   addToHistory: (sessionData: SessionData) => void;
+  setGeminiApiKey: (key: string) => void;
+  setMinimaxApiKey: (key: string) => void;
   reset: () => void;
 }
 
@@ -47,6 +51,8 @@ export const useSessionStore = create<SessionStore>()(
       likedPostIds: [],
       dislikedReasons: [],
       history: [],
+      geminiApiKey: "",
+      minimaxApiKey: "",
 
       setSession: (sessionId, sourceText, platform, posts) =>
         set({ sessionId, sourceText, platform, posts }),
@@ -85,6 +91,9 @@ export const useSessionStore = create<SessionStore>()(
           ].slice(0, 50),
         })),
 
+      setGeminiApiKey: (key) => set({ geminiApiKey: key }),
+      setMinimaxApiKey: (key) => set({ minimaxApiKey: key }),
+
       reset: () =>
         set({
           sessionId: null,
@@ -101,6 +110,8 @@ export const useSessionStore = create<SessionStore>()(
         likedPostIds: state.likedPostIds,
         dislikedReasons: state.dislikedReasons,
         history: state.history,
+        geminiApiKey: state.geminiApiKey,
+        minimaxApiKey: state.minimaxApiKey,
       }),
     }
   )

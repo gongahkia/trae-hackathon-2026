@@ -10,6 +10,18 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+export interface ApiKeys {
+  geminiApiKey?: string;
+  minimaxApiKey?: string;
+}
+
+function buildKeyHeaders(keys?: ApiKeys): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (keys?.geminiApiKey) headers["X-Gemini-Api-Key"] = keys.geminiApiKey;
+  if (keys?.minimaxApiKey) headers["X-Minimax-Api-Key"] = keys.minimaxApiKey;
+  return headers;
+}
+
 async function fetchApi<T>(
   endpoint: string,
   options?: RequestInit
@@ -65,16 +77,18 @@ export const api = {
       body: JSON.stringify({ url, restrict_to_document: restrictToDocument }),
     }),
 
-  generateFeed: (sessionId: string, platform: string, postCount: number = 10) =>
+  generateFeed: (sessionId: string, platform: string, postCount: number = 10, keys?: ApiKeys) =>
     fetchApi<FeedGenerateResponse>("/api/generate/feed", {
       method: "POST",
       body: JSON.stringify({ session_id: sessionId, platform, post_count: postCount }),
+      headers: buildKeyHeaders(keys),
     }),
 
-  generateRecommendations: (sessionId: string) =>
+  generateRecommendations: (sessionId: string, keys?: ApiKeys) =>
     fetchApi<RecommendationsResponse>("/api/generate/recommendations", {
       method: "POST",
       body: JSON.stringify({ session_id: sessionId }),
+      headers: buildKeyHeaders(keys),
     }),
 
   getSession: (sessionId: string) =>

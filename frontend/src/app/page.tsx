@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useDropzone } from "react-dropzone";
-import { FileText, Link as LinkIcon, MessageSquare, Loader2, Upload, Bookmark, Clock } from "lucide-react";
+import { FileText, Link as LinkIcon, MessageSquare, Loader2, Upload, Bookmark, Clock, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { setSession, addToHistory } = useSessionStore();
+  const { setSession, addToHistory, geminiApiKey, minimaxApiKey } = useSessionStore();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -85,7 +85,8 @@ export default function HomePage() {
         sourceText = response.source_text;
       }
 
-      const feedResponse = await api.generateFeed(sessionId, platform);
+      const apiKeys = { geminiApiKey: geminiApiKey || undefined, minimaxApiKey: minimaxApiKey || undefined };
+      const feedResponse = await api.generateFeed(sessionId, platform, 10, apiKeys);
 
       setSession(sessionId, sourceText, platform, feedResponse.posts);
       addToHistory({
@@ -121,6 +122,12 @@ export default function HomePage() {
               <Button variant="ghost" size="sm" className="gap-2">
                 <Bookmark size={16} />
                 Saved
+              </Button>
+            </Link>
+            <Link href="/settings">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Settings size={16} />
+                Settings
               </Button>
             </Link>
           </div>
