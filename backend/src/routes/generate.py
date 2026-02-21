@@ -98,8 +98,6 @@ async def generate_feed(
     try:
         response_text, provider = _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
         logger.info(f"Feed generated using {provider}")
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Feed generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
@@ -164,8 +162,6 @@ Respond ONLY with valid JSON array, no explanation, no markdown."""
     try:
         response_text, provider = _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
         logger.info(f"Recommendations generated using {provider}")
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Recommendations generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
@@ -210,8 +206,6 @@ async def generate_knowledge_graph(
     try:
         response_text, provider = _llm_generate(prompt, x_gemini_api_key, x_minimax_api_key)
         logger.info(f"Knowledge graph generated using {provider}")
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Knowledge graph generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
