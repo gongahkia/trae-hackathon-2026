@@ -21,7 +21,7 @@ Output format: JSON array of posts with this exact structure:
   {
     "id": "unique-id",
     "platform": "reddit" or "twitter",
-    "post_type": "question" | "creator" | "rant" | "listicle",
+    "post_type": "question" | "creator" | "rant" | "listicle" | "poll",
     "title": "post title",
     "body": "post body text",
     "author_handle": "u/snake_case for reddit, @CamelCase for twitter",
@@ -41,13 +41,15 @@ Output format: JSON array of posts with this exact structure:
 ]
 
 Post type diversity requirements:
-- At minimum: 2 question posts, 2 creator posts, 1 rant post, 1 listicle, rest randomized
+- At minimum: 2 question posts, 2 creator posts, 1 rant post, 1 listicle, 1 poll, rest randomized
 
 For question posts: Generate 3-5 comments with answer revealed progressively (first sets up context, subsequent deepen explanation)
-For non-question posts: Generate 2-3 comments with tangential insights or debate
+For listicle posts: title must start with a number e.g. "Top 5..." or "7 reasons..."; body must be a numbered list (1. item\n2. item\n...) of 4-7 concise items derived from source material
+For poll posts: title is a binary or multiple-choice question derived from the source material (e.g. "Which approach do you prefer: X or Y?"); body starts with a short hook sentence, then lists 2-4 options formatted as "A) option\nB) option\n..." or "• option\n• option\n..."; comments are users stating which option they prefer and briefly why
+For non-question, non-listicle, non-poll posts: Generate 2-3 comments with tangential insights or debate
 
 Citation format: "Source: [document title or domain]"
-Upvote ranges: questions 500-5000, rants 1000-20000, listicles 2000-15000, creator posts 300-3000
+Upvote ranges: questions 500-5000, rants 1000-20000, listicles 2000-15000, creator posts 300-3000, polls 1000-10000
 
 Generate realistic author handles: Reddit u/snake_case, Twitter @CamelCase
 Generate plausible timestamps in relative format.

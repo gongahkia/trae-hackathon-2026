@@ -195,6 +195,23 @@ export function PostCard({ post, platform, condensed = false, highlighted = fals
 
   const renderComments = () => {
     if (post.comments.length === 0) return <p className="text-sm text-gray-500">No comments yet.</p>;
+    if (post.post_type === "poll") {
+      return (
+        <div className="flex flex-col gap-3">
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Votes & opinions</p>
+          {post.comments.map((comment) => (
+            <div key={comment.id} className="flex items-start gap-2 border-b pb-3 last:border-0">
+              <span className="mt-0.5 text-base">🗳️</span>
+              <div>
+                <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>{comment.author_handle}</span>
+                <p className="text-sm text-gray-700 mt-0.5">{comment.body}</p>
+                {renderCommentCitations(comment.citations)}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
     if (post.post_type === "question") {
       return (
         <div className="flex flex-col gap-4">
@@ -294,8 +311,12 @@ export function PostCard({ post, platform, condensed = false, highlighted = fals
         </CardHeader>
         <CardContent className="pt-1">
           <h3 className="font-semibold text-base mb-1.5 leading-snug">{post.title}</h3>
-          <p className={`text-sm text-gray-600 ${!expanded ? "line-clamp-3" : ""}`}>{post.body}</p>
-          {post.body.length > 150 && (
+          <div className={!expanded && post.post_type !== "listicle" && post.post_type !== "poll" ? "line-clamp-3" : ""}>
+            {post.post_type === "listicle" ? renderListicleBody(post.body)
+              : post.post_type === "poll" ? renderPollBody(post.body)
+              : <p className="text-sm text-gray-600">{post.body}</p>}
+          </div>
+          {post.post_type !== "listicle" && post.post_type !== "poll" && post.body.length > 150 && (
             <button onClick={() => setExpanded(!expanded)}
               className="text-blue-500 text-xs mt-1 flex items-center gap-1">
               {expanded ? <><ChevronUp size={13} /> Show less</> : <><ChevronDown size={13} /> Read more</>}
@@ -372,11 +393,13 @@ export function PostCard({ post, platform, condensed = false, highlighted = fals
           {typeConfig.emoji} {typeConfig.label}
         </span>
         {/* tweet body — title as bold hook, then body */}
-        <p className={`text-sm text-gray-900 ${!expanded ? "line-clamp-4" : ""}`}>
-          <span className="font-semibold">{post.title}{" "}</span>
-          <span className="text-gray-700">{post.body}</span>
-        </p>
-        {(post.title.length + post.body.length) > 200 && (
+        <p className="text-sm font-semibold mb-1">{post.title}</p>
+        <div className={post.post_type !== "listicle" && post.post_type !== "poll" && !expanded ? "line-clamp-4" : ""}>
+          {post.post_type === "listicle" ? renderListicleBody(post.body)
+            : post.post_type === "poll" ? renderPollBody(post.body)
+            : <span className="text-sm text-gray-700">{post.body}</span>}
+        </div>
+        {post.post_type !== "listicle" && post.post_type !== "poll" && (post.title.length + post.body.length) > 200 && (
           <button onClick={() => setExpanded(!expanded)}
             className="text-blue-500 text-xs mt-1 flex items-center gap-1">
             {expanded ? <><ChevronUp size={13} /> Show less</> : <><ChevronDown size={13} /> Show more</>}

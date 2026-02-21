@@ -24,7 +24,7 @@ export function SplashScreen() {
     >
       <div className="absolute inset-0 bg-[#fffcf6]" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.jpeg" alt="Learned logo" className="relative w-40 h-40 object-contain rounded-2xl shadow-lg" />
+      <img src="/logo.png" alt="Learned logo" className="relative w-40 h-40 object-contain rounded-2xl shadow-lg" />
     </div>
   );
 }
