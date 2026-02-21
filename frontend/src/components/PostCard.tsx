@@ -334,7 +334,7 @@ export function PostCard({ post, platform, condensed = false, highlighted = fals
   }
 
   return (
-    <Card className={`mb-4 border-0 border-b pb-4 transition-opacity duration-300 ${isHiding ? "opacity-0" : "opacity-100"} sm:rounded-lg rounded-none`}>
+    <Card className={`mb-4 border-0 border-b pb-4 transition-opacity duration-300 ${isHiding ? "opacity-0" : "opacity-100"} ${highlighted ? "ring-2 ring-blue-500" : ""} sm:rounded-lg rounded-none`}>
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-full bg-gray-200" />
