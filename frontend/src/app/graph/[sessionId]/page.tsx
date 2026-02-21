@@ -50,10 +50,8 @@ export default function GraphPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNodeClick = (node: any) => {
-    if (node.post_ids?.length) {
-      setHighlightedPosts(node.post_ids);
-      router.push(`/feed/${sessionId}`);
-    }
+    if (node.post_ids?.length) setHighlightedPosts(node.post_ids);
+    router.push(`/feed/${sessionId}`);
   };
 
   const fgData = graphData
@@ -64,14 +62,14 @@ export default function GraphPage() {
     : { nodes: [], links: [] };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <header className="sticky top-0 bg-gray-900 border-b border-gray-800 z-10">
+    <div className="min-h-screen bg-white text-gray-900">
+      <header className="sticky top-0 bg-white border-b border-gray-200 z-10">
         <div className="max-w-[900px] mx-auto px-4 py-3 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => router.push(`/feed/${sessionId}`)}>
             <ArrowLeft size={18} />
           </Button>
           <h1 className="font-bold text-lg">Knowledge Graph</h1>
-          <div className="ml-auto flex items-center gap-3 text-xs text-gray-400">
+          <div className="ml-auto flex items-center gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />concept</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-500 inline-block" />person</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />tool</span>
@@ -81,13 +79,13 @@ export default function GraphPage() {
       </header>
       <main className="w-full" style={{ height: dimensions.height }}>
         {loading && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400">
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-500">
             <Loader2 className="w-8 h-8 animate-spin" />
             <p>Building knowledge graph...</p>
           </div>
         )}
         {error && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-red-400">
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-red-500">
             <p>{error}</p>
             <Button variant="outline" onClick={() => router.back()}>Go back</Button>
           </div>
@@ -99,7 +97,8 @@ export default function GraphPage() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             nodeColor={(node: any) => node.color}
             linkLabel="label"
-            backgroundColor="#030712"
+            linkColor={() => "#d1d5db"}
+            backgroundColor="#ffffff"
             width={dimensions.width}
             height={dimensions.height}
             onNodeClick={handleNodeClick}
@@ -112,7 +111,7 @@ export default function GraphPage() {
               ctx.beginPath();
               ctx.arc(node.x, node.y, 6, 0, 2 * Math.PI);
               ctx.fill();
-              ctx.fillStyle = "rgba(255,255,255,0.85)";
+              ctx.fillStyle = "#111827";
               ctx.textAlign = "center";
               ctx.textBaseline = "top";
               ctx.fillText(label, node.x, node.y + 8);
