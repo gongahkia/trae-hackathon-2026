@@ -1,0 +1,132 @@
+# OUR SATURDAY — Hackathon MVP Task List
+# Stack: Next.js 14 (App Router) + Firebase Realtime DB + React-Leaflet/OSM + Claude API
+# Platform: Web-first (mobile-responsive Next.js replaces React Native for MVP speed)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ════════════════════════════════════════
+# +infra  INFRASTRUCTURE & CONFIG
+# ════════════════════════════════════════
+
+(A) Initialize Next.js 14 project with App Router, TypeScript, and Tailwind CSS configured +infra
+(A) Install and initialize Firebase SDK (firebase/app, firebase/auth, firebase/database) with environment variables stored in .env.local +infra
+(A) Configure Firebase project: enable Anonymous Auth and Realtime Database with default rules allowing authenticated read/write +infra
+(A) Create /lib/firebase.ts that exports initialized Firebase app, auth instance, and database instance as singletons +infra
+(A) Write Firebase Realtime Database security rules: anonymous users can read/write only map nodes they created; map viewers (unauthenticated) can read public map nodes +infra
+(A) Install React-Leaflet and Leaflet; add dynamic import wrapper in Next.js to disable SSR for all map components (Leaflet requires window) +infra
+(A) Configure Next.js to allow dynamic OG image generation via next/og for map share previews +infra
+
+# ════════════════════════════════════════
+# +auth  AUTHENTICATION
+# ════════════════════════════════════════
+
+(A) Implement signInAnonymously() on app load using Firebase Auth; persist session to localStorage so anonymous UID survives page refresh +auth
+(A) Create /lib/useAuth.ts custom hook that returns { user, isAnonymous, loading } by subscribing to onAuthStateChanged +auth
+(A) Build <UpgradePrompt /> modal component that fires when an anonymous user attempts a write action (add pin, vote); prompt contains Google SSO and email/password options +auth
+(A) Implement linkWithCredential() to merge anonymous session data into a permanent account when user completes upgrade flow +auth
+(A) Implement createUserWithEmailAndPassword and signInWithEmailAndPassword flows behind the <UpgradePrompt /> modal +auth
+(A) Implement GoogleAuthProvider sign-in flow using signInWithPopup behind the <UpgradePrompt /> modal +auth
+(A) After account upgrade, write user profile node to Firebase at /users/{uid} containing { displayName, createdAt, mapsCreated: 0 } +auth
+(A) Create /lib/useRequireAuth.ts hook that triggers <UpgradePrompt /> when isAnonymous === true and a protected action is called +auth
+
+# ════════════════════════════════════════
+# +db  DATA MODEL & FIREBASE SCHEMA
+# ════════════════════════════════════════
+
+(A) Define Firebase Realtime DB schema: /maps/{mapId} containing { title, slug, ownerUid, createdAt, isPublic: true } +db
+(A) Define /maps/{mapId}/pins/{pinId} schema: { lat, lng, title, description, category, isGhost, votes: 0, addedBy, createdAt } +db
+(A) Define /maps/{mapId}/votes/{pinId}/{uid} schema: boolean flag to enforce one-vote-per-user-per-pin at the database rules level +db
+(A) Write Firebase rule that prevents a single UID from casting more than one vote per pin by checking /maps/{mapId}/votes/{pinId}/{uid} existence +db
+(A) Define /users/{uid}/unlockedGhostPins/{pinId} schema: { mapId, unlockedAt } to track personal Ghost Pin discovery history +db
+(A) Write a Firebase Cloud Function (or Next.js API route using firebase-admin) that generates a unique 8-character nanoid slug on map creation and writes it to /slugIndex/{slug}: mapId for reverse lookup +db
+
+# ════════════════════════════════════════
+# +api  BACKEND API ROUTES (Next.js /app/api)
+# ════════════════════════════════════════
+
+(A) POST /api/maps — validates auth token, creates new map node in Firebase with generated slug, returns { mapId, slug } +api
+(A) POST /api/maps/[mapId]/pins — validates auth token, writes new pin node to Firebase, returns { pinId } +api
+(A) POST /api/maps/[mapId]/pins/[pinId]/vote — validates auth token, checks /votes/{pinId}/{uid} doesn't exist, atomically increments pin.votes and sets vote flag using Firebase transaction +api
+(A) GET /api/maps/slug/[slug] — looks up mapId from /slugIndex/{slug}, returns full map data including non-ghost pins; ghost pin payloads omit lat/lng and replace with { isGhost: true, blurLabel: "???" } +api
+(A) POST /api/ghost/unlock — receives { mapId, pinId, userLat, userLng } from client; verifies distance ≤ 500m from pin coords using Haversine formula server-side; writes to /users/{uid}/unlockedGhostPins/{pinId}; returns full pin data +api
+(A) POST /api/parse/text — receives { rawText } string, calls Claude claude-sonnet-4-6 API with a prompt instructing it to extract location names, addresses, and times; returns structured JSON array of { name, address, suggestedTime } +api
+(A) POST /api/parse/ics — receives uploaded .ics file body, parses VEVENT blocks using the ical.js library to extract SUMMARY, LOCATION, and DTSTART fields; returns same structured JSON array as /api/parse/text +api
+(A) Create /lib/haversine.ts utility function: haversineMeters(lat1, lng1, lat2, lng2) => number, used by the ghost unlock API route +api
+
+# ════════════════════════════════════════
+# +frontend  CORE PAGES & ROUTING
+# ════════════════════════════════════════
+
+(A) Build / (home) page: single CTA "Start a Map" button that calls POST /api/maps, then redirects to /map/[mapId]/edit +frontend
+(A) Build /map/[mapId]/edit page (authenticated Tastemaker view): full-screen map with pin toolbar, Live Map panel, and AI Parser panel +frontend
+(A) Build /[slug] page (public Web Viewer): fetches map via GET /api/maps/slug/[slug], renders read-only map with all pins; Ghost Pins shown as blurred markers +frontend
+(A) Build /profile page (authenticated): shows list of maps created by the current user with share links, no social graph features +frontend
+(A) Implement Next.js generateMetadata for /[slug] page: dynamic OG title = map title, OG description = pin count + owner name, for rich link previews when shared on WhatsApp +frontend
+(A) Add deep-link redirect: if an anonymous Web Viewer on /[slug] taps "Add a Pin", redirect to /map/[mapId]/edit after completing auth upgrade +frontend
+
+# ════════════════════════════════════════
+# +map  MAP COMPONENTS (React-Leaflet)
+# ════════════════════════════════════════
+
+(A) Create <BaseMap /> component: renders React-Leaflet MapContainer with OSM tile layer (https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png), zoom controls, and attribution +map
+(A) Create <PinMarker /> component: accepts pin object; renders custom Leaflet divIcon with category emoji + vote count badge; applies CSS blur filter when pin.isGhost === true and not unlocked +map
+(A) Create <GhostPinMarker /> component: renders blurred pulsing marker at a jittered position (offset ±200m randomly) to hint at hidden gem location without revealing exact coords +map
+(A) Create <AddPinModal /> component: appears on map click in edit mode; contains fields for title, description, category (Food/Bar/Activity/Other), isGhost toggle; submits to POST /api/maps/[mapId]/pins +map
+(A) Create <PinPopup /> component: shown on marker click; displays title, description, vote count, a heart button (calls vote API), and a "Get Directions" link opening maps.google.com/?daddr={lat},{lng} in a new tab +map
+(A) Implement real-time pin sync in edit view: subscribe to Firebase onValue listener at /maps/{mapId}/pins and update local React state on every child_added / child_changed / child_removed event +map
+(A) Implement map bounds auto-fit: when pins array updates, call map.fitBounds(latLngBounds) on the Leaflet map ref to keep all pins visible +map
+(A) Create <ShareBar /> component rendered at top of /[slug] Web Viewer: shows map title, pin count, a copy-link button (navigator.clipboard.writeText), and an "Open in App" CTA that triggers <UpgradePrompt /> +map
+(A) Implement vote optimistic update in <PinPopup />: immediately increment displayed vote count in local state, then roll back if POST /api/.../vote returns an error +map
+
+# ════════════════════════════════════════
+# +ghostpin  GHOST PIN PROXIMITY ENGINE
+# ════════════════════════════════════════
+
+(A) Create /lib/useGeolocation.ts hook: calls navigator.geolocation.watchPosition, returns { lat, lng, error, loading }; requests only when user is on a page with ghost pins present +ghostpin
+(A) In Web Viewer /[slug] page, after pins load, call useGeolocation if any pin has isGhost === true to begin proximity monitoring +ghostpin
+(A) Create <GhostPinProximityWatcher /> component: on each geolocation update, iterate ghost pins, call haversineMeters for each, and trigger unlock flow for any pin ≤ 500m away +ghostpin
+(A) When proximity threshold is met, call POST /api/ghost/unlock; on success, replace the blurred <GhostPinMarker /> with a full <PinMarker /> using the now-revealed lat/lng and show a toast notification "🎉 Hidden gem unlocked!" +ghostpin
+(A) Store unlocked Ghost Pin IDs in localStorage under key oursaturday_unlocked_{uid} to persist reveal state across sessions without re-querying the API +ghostpin
+(A) Show a <GhostPinBanner /> at the bottom of maps containing ghost pins: "X hidden gems nearby — explore to unlock them" with a pulsing dot indicator +ghostpin
+
+# ════════════════════════════════════════
+# +parser  AI ITINERARY PARSER
+# ════════════════════════════════════════
+
+(A) Create <ParserPanel /> component (collapsible side panel in edit view): contains a textarea for WhatsApp paste, a file input accepting .ics files, and a single "Parse & Drop Pins" button +parser
+(A) On text submit in <ParserPanel />, POST rawText to /api/parse/text; display a loading skeleton; on response, render <ParsedPinPreview /> list for user confirmation before committing +parser
+(A) On .ics file upload in <ParserPanel />, read file as text using FileReader API and POST to /api/parse/ics; same preview flow as text parse +parser
+(A) Create <ParsedPinPreview /> component: renders a list of extracted locations with checkboxes; user selects which to keep; "Add Selected to Map" button bulk-POSTs each selected item to /api/maps/[mapId]/pins +parser
+(A) Write Claude API system prompt for /api/parse/text: instruct model to return ONLY a JSON array, no markdown, schema [{ "name": string, "address": string, "suggestedTime": string | null }]; include few-shot example with messy WhatsApp input +parser
+(A) Implement geocoding for parser output: for each extracted address, call the Nominatim OSM geocoding API (https://nominatim.openstreetmap.org/search?q=...&format=json) to resolve lat/lng before writing pin to Firebase +parser
+(A) Add rate-limit guard on Nominatim calls: enforce minimum 1100ms delay between requests per Nominatim's usage policy using a sequential promise queue +parser
+
+# ════════════════════════════════════════
+# +livemap  LIVE COLLABORATIVE MAP FEATURES
+# ════════════════════════════════════════
+
+(A) Display live collaborator cursor count in edit view: write { uid, lastSeen } to /maps/{mapId}/presence/{uid} on mount using Firebase onDisconnect to auto-remove stale presence entries +livemap
+(A) Show "X people viewing this map" badge in the edit view toolbar derived from the presence node child count +livemap
+(A) Implement pin highlight animation: when a new pin is added by a collaborator (child_added fires), briefly animate the new <PinMarker /> with a CSS scale-up keyframe to draw attention +livemap
+(A) Sort pins in the side panel by vote count descending in real time; top-voted pin gets a "⭐ Top Pick" label overlay on its marker +livemap
+(A) Create <FinalItinerary /> drawer: a bottom sheet listing pins sorted by votes with a sequence number; "Get Directions for Full Route" button constructs a Google Maps URL with waypoints for all top pins +livemap
+
+# ════════════════════════════════════════
+# +ux  UI / UX POLISH
+# ════════════════════════════════════════
+
+(A) Implement haptic feedback on pin drop using navigator.vibrate(12) on mobile after <AddPinModal /> submit succeeds +ux
+(A) Design pin category color system in Tailwind: Food = amber-400, Bar = violet-500, Activity = emerald-400, Other = slate-400; apply to marker icons and panel badges +ux
+(A) Create full-screen loading state for /[slug] Web Viewer using a pulsing skeleton map overlay while GET /api/maps/slug/[slug] resolves +ux
+(A) Add toast notification system using a lightweight lib (react-hot-toast): fire success toasts on pin added, vote cast, Ghost Pin unlocked; fire error toasts on network failure +ux
+(A) Make the Web Viewer fully mobile-responsive: map takes full viewport height minus <ShareBar />, pin popups stack vertically on narrow screens, touch targets ≥ 44px +ux
+(A) Add empty-state illustration to new maps with zero pins: centered SVG prompt "Tap anywhere on the map to drop your first pin" +ux
+(A) Implement copy-link share button that writes window.location.href to clipboard and shows a "Link copied!" toast; include WhatsApp share shortcut: https://wa.me/?text=encodeURIComponent(url) +ux
+(A) Build <ProfilePage /> showing a grid of the user's maps with title, pin count, and share link; each card has a "Copy Link" icon button +ux
+
+# ════════════════════════════════════════
+# +perf  CACHING & PERFORMANCE
+# ════════════════════════════════════════
+
+(A) Cache GET /api/maps/slug/[slug] responses in Next.js with revalidate: 30 (ISR) so Web Viewer loads instantly without hitting Firebase on every pageview +perf
+(A) Lazy-load <ParserPanel /> using next/dynamic so the Claude API client code is not included in the initial map page bundle +perf
+(A) Add SWR or React Query to /api/maps/slug/[slug] fetch in Web Viewer for client-side revalidation without full page refresh +perf
