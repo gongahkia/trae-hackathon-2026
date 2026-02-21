@@ -80,3 +80,21 @@ class RecommendationsResponse(BaseModel):
 class ErrorResponse(BaseModel):
     error: str
     detail: str = ""
+
+class GraphNode(BaseModel):
+    id: str
+    label: str
+    type: str  # "concept" | "person" | "tool" | "event"
+    post_ids: List[str]
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    relationship: str
+
+class KnowledgeGraphRequest(BaseModel):
+    session_id: str
+
+class KnowledgeGraphResponse(BaseModel):
+    nodes: List[GraphNode]
+    edges: List[GraphEdge]

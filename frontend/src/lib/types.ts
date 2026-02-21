@@ -57,3 +57,7 @@ export interface HealthResponse {
   status: "ok";
   providers: string[];
 }
+
+export interface GraphNode { id: string; label: string; type: string; post_ids: string[]; }
+export interface GraphEdge { source: string; target: string; relationship: string; }
+export interface KnowledgeGraphResponse { nodes: GraphNode[]; edges: GraphEdge[]; }
