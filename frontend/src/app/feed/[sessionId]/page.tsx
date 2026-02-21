@@ -88,9 +88,13 @@ export default function FeedPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="sticky top-0 bg-white border-b z-10">
         <div className="max-w-[600px] mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-bold text-xl">
-            {platform === "reddit" ? "r/Learn" : "@Feed"}
-          </h1>
+          <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" className="w-7 h-7 object-contain" />
+            <h1 className="font-bold text-xl">
+              {platform === "reddit" ? "r/Learn" : "@Feed"}
+            </h1>
+          </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => router.push(`/graph/${sessionId}`)}>
               <Network size={18} />

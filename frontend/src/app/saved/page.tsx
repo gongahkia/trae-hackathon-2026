@@ -33,6 +33,8 @@ export default function SavedPage() {
                 <ArrowLeft size={18} />
               </Button>
             </Link>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" className="w-6 h-6 object-contain" />
             <h1 className="font-bold text-xl">Saved Posts</h1>
           </div>
           <Link href="/">

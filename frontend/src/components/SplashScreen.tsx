@@ -3,29 +3,31 @@
 import { useState, useEffect } from "react";
 
 export function SplashScreen() {
-  const [visible, setVisible] = useState(false);
-  const [fading, setFading] = useState(false);
+  const [phase, setPhase] = useState<"hidden" | "show" | "fade">("hidden");
 
   useEffect(() => {
     if (sessionStorage.getItem("splashShown")) return;
     sessionStorage.setItem("splashShown", "1");
-    setVisible(true);
-    const t1 = setTimeout(() => setFading(true), 3000);
-    const t2 = setTimeout(() => setVisible(false), 3700);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    setPhase("show");
+    const t = setTimeout(() => setPhase("fade"), 3000);
+    return () => clearTimeout(t);
   }, []);
 
-  if (!visible) return null;
+  if (phase === "hidden") return null;
   return (
     <div
-      style={{ transition: "opacity 0.7s ease" }}
-      className={`fixed inset-0 z-50 flex items-center justify-center ${fading ? "opacity-0" : "opacity-100"}`}
-      aria-hidden="true"
+      style={{
+        transition: "opacity 0.7s ease",
+        opacity: phase === "fade" ? 0 : 1,
+        pointerEvents: phase === "fade" ? "none" : "all",
+      }}
+      onTransitionEnd={() => setPhase("hidden")}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#fffcf6]"
     >
-      <div className="absolute inset-0 bg-[#fffcf6]" />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <div className="relative flex flex-col items-center gap-4">
-        <img src="/logo.png" alt="Learned logo" className="w-40 h-40 object-contain rounded-2xl shadow-lg" />
+      <div className="flex flex-col items-center gap-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Learned logo" className="w-40 h-40 object-contain" />
+        <p className="text-2xl font-bold" style={{ color: "#292b2d" }}>Welcome to Learned</p>
       </div>
     </div>
   );

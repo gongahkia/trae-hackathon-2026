@@ -151,6 +151,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="text-center mb-8">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Learned logo" className="w-20 h-20 object-contain mx-auto mb-3" />
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Learned</h1>
           <p className="text-gray-600">Transform any content into engaging social feeds</p>
           <div className="flex items-center justify-center gap-2 mt-4">
