@@ -4,6 +4,7 @@ import {
   UrlIngestResponse,
   FeedGenerateResponse,
   RecommendationsResponse,
+  KnowledgeGraphResponse,
   HealthResponse,
   Session,
 } from "./types";
@@ -93,6 +94,13 @@ export const api = {
 
   generateRecommendations: (sessionId: string, keys?: ApiKeys) =>
     fetchApi<RecommendationsResponse>("/api/generate/recommendations", {
+      method: "POST",
+      body: JSON.stringify({ session_id: sessionId }),
+      headers: buildKeyHeaders(keys),
+    }),
+
+  generateKnowledgeGraph: (sessionId: string, keys?: ApiKeys) =>
+    fetchApi<KnowledgeGraphResponse>("/api/generate/knowledge-graph", {
       method: "POST",
       body: JSON.stringify({ session_id: sessionId }),
       headers: buildKeyHeaders(keys),
