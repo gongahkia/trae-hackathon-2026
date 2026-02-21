@@ -109,7 +109,7 @@ export const useSessionStore = create<SessionStore>()(
         }),
     }),
     {
-      name: "doomlearn-storage",
+      name: "Learned-storage",
       partialize: (state) => ({
         savedPosts: state.savedPosts,
         hiddenPostIds: state.hiddenPostIds,

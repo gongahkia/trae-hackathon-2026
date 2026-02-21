@@ -10,7 +10,7 @@ from src.routes.generate import router as generate_router
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="DoomLearn API", version="1.0.0")
+app = FastAPI(title="Learned API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,

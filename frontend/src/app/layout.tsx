@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "DoomLearn",
+  title: "Learned",
   description: "We're doomed",
 };
 
