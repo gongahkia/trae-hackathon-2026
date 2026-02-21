@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUp, Bookmark, Plus, Loader2, Clock, Settings } from "lucide-react";
+import { ArrowUp, Bookmark, Plus, Loader2, Clock, Settings, Network } from "lucide-react";
 import { PostCard } from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
 import { useSessionStore } from "@/store/session";
@@ -14,7 +14,7 @@ export default function FeedPage() {
   const router = useRouter();
   const sessionId = params.sessionId as string;
 
-  const { sessionId: storeSessionId, posts, platform, hiddenPostIds, setSession, geminiApiKey, minimaxApiKey } =
+  const { sessionId: storeSessionId, posts, platform, hiddenPostIds, setSession, geminiApiKey, minimaxApiKey, highlightedPostIds } =
     useSessionStore();
 
   const [recommendations, setRecommendations] = useState<string[]>([]);
@@ -38,7 +38,6 @@ export default function FeedPage() {
         }
       }
     };
-
     loadSession();
   }, [sessionId, storeSessionId, setSession, router]);
 
@@ -55,7 +54,6 @@ export default function FeedPage() {
         setLoadingRecs(false);
       }
     };
-
     fetchRecommendations();
   }, [sessionId, geminiApiKey, minimaxApiKey]);
 
@@ -66,6 +64,15 @@ export default function FeedPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (highlightedPostIds.length === 0 || posts.length === 0) return;
+    const firstId = highlightedPostIds.find((id) => posts.some((p) => p.id === id));
+    if (!firstId) return;
+    setTimeout(() => {
+      document.getElementById(firstId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+  }, [highlightedPostIds, posts]);
 
   const visiblePosts = posts.filter((post) => !hiddenPostIds.includes(post.id));
 
@@ -85,6 +92,9 @@ export default function FeedPage() {
             {platform === "reddit" ? "r/Learn" : "@Feed"}
           </h1>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => router.push(`/graph/${sessionId}`)}>
+              <Network size={18} />
+            </Button>
             <Link href="/history">
               <Button variant="ghost" size="sm">
                 <Clock size={18} />
@@ -116,12 +126,19 @@ export default function FeedPage() {
           </div>
         ) : (
           visiblePosts.map((post) => (
-            <PostCard key={post.id} post={post} platform={platform} />
+            <div key={post.id} id={post.id}>
+              <PostCard
+                post={post}
+                platform={platform}
+                highlighted={highlightedPostIds.includes(post.id)}
+              />
+            </div>
           ))
         )}
 
         {visiblePosts.length > 0 && (
           <div className="mt-8 pt-8 border-t">
+            <p className="text-center text-gray-400 text-sm mb-6">You&apos;ve reached the end ✓</p>
             <h2 className="font-semibold text-lg mb-4">Explore more topics</h2>
             {loadingRecs ? (
               <div className="flex items-center gap-2 text-gray-500">
