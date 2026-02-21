@@ -197,6 +197,7 @@ export function PostCard({ post, platform }: PostCardProps) {
             </CardContent>
           </div>
         </div>
+        {commentsDialog}
       </Card>
     );
   }
@@ -245,7 +246,7 @@ export function PostCard({ post, platform }: PostCardProps) {
               <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
               <span className="text-sm">{formatUpvotes(post.upvotes)}</span>
             </button>
-            <button className="flex items-center gap-1 text-gray-500">
+            <button onClick={() => setShowComments(true)} className="flex items-center gap-1 text-gray-500">
               <MessageCircle size={18} />
               <span className="text-sm">{post.comments.length}</span>
             </button>
