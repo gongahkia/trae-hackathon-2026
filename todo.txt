@@ -1,21 +1,4 @@
-(A) Hook up minimax for content generation as well per the accepted API keys
-(A) Add a betetr loading state when posts are generating
-(A) Allow user to halt generation halfway if they don't want to wait
-(A) Show a "You've reached the end" state after the last post card with recommendations section below it, which is then followed by a text bubble that lets users click similar prompts they then want to prompt next 
-(A) Render citations as small grey text links at bottom of PostCard, prefixed with "Source:" +frontend
-(A) Implement Like button on PostCard: clicking increments local upvote count, adds post.id to likedPostIds in Zustand store, animates heart/upvote icon +frontend
-(A) Implement Save button on PostCard: clicking toggles saved state, adds/removes post from savedPosts in Zustand store, bookmark icon fills on save +frontend
-(A) On "Don't show me this" confirmation, add post.id to hiddenPostIds and selected reason to dislikedReasons in Zustand, hide PostCard from feed with fade-out animation +frontend
-(A) On click of comment icon or "X comments" text on PostCard, open a bottom sheet drawer (shadcn Sheet component) showing the pre-generated comments +frontend
-(A) For question-type posts, render comments in a threaded style with the answer revealed sequentially — first comment sets up context, subsequent comments deepen explanation +frontend
-(A) For non-question posts, render flat comment list with author handles, upvotes, body, and citations per comment +frontend
-(A) Show comment count badge on the comment icon of each PostCard +frontend
-(A) Close drawer on backdrop click or swipe-down gesture (add touch event handler for mobile) +frontend
-(A) Create app/saved/page.tsx listing all posts in savedPosts Zustand array as condensed PostCard components (no comment drawer, just title + citations) +frontend
-(A) Group saved posts by session (source document/prompt) using sessionId, show source label as section header +frontend
-(A) Create components/Recommendations.tsx rendered at the bottom of the feed page after last post +frontend
-(A) Each recommendation card shows the suggested prompt text and a "Explore →" button +frontend
-(A) Optimise the entire display to be for a mobile screen
+(A) Show a "You've reached the end" state after the last post card with recommendations section below it, which is then followed by a text bubble that lets users click similar prompts they then want to prompt next
 
 # ============================================================
 # +generation KNOWLEDGE GRAPH (Nice to Have)
@@ -31,11 +14,3 @@
 # +backend QUALITY & RESILIENCE
 # ============================================================
 (A) Add request timeout of 30s on all LLM calls, return 504 with "Generation timed out, please retry" if exceeded +backend
-
-# ============================================================
-# +frontend QUALITY & UX
-# ============================================================
-(A) Show toast notification (shadcn Toast) on save action: "Post saved ✓" and on hide action: "Post hidden" +frontend
-(A) Show full-page error state with retry button if generateFeed API call fails, displaying the error message from backend +frontend
-(A) Add skeleton loader cards (3 animated grey cards) while feed is generating to prevent layout shift +frontend
-(A) Make feed page responsive: on mobile (<640px) remove card padding, full-width cards; on desktop center at 600px max-width +frontend
