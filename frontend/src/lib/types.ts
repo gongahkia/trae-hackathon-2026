@@ -9,7 +9,7 @@ export interface Comment {
 export interface Post {
   id: string;
   platform: "reddit" | "twitter";
-  post_type: "question" | "creator" | "rant" | "listicle";
+  post_type: "question" | "creator" | "rant" | "listicle" | "poll";
   title: string;
   body: string;
   author_handle: string;
