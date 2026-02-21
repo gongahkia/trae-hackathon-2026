@@ -48,6 +48,7 @@ const postTypeConfig = {
   creator: { label: "Creator", emoji: "🎙", color: "bg-purple-100 text-purple-800" },
   rant: { label: "Rant", emoji: "🔥", color: "bg-red-100 text-red-800" },
   listicle: { label: "Listicle", emoji: "📋", color: "bg-green-100 text-green-800" },
+  poll: { label: "Poll", emoji: "📊", color: "bg-amber-100 text-amber-800" },
 };
 
 // deterministic color from string
