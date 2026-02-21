@@ -10,7 +10,7 @@ import { useSessionStore } from "@/store/session";
 import { KnowledgeGraphResponse } from "@/lib/types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ForceGraph2D = dynamic(() => import("react-force-graph-2d") as any, { ssr: false });
+const ForceGraph2D = dynamic(() => import("react-force-graph-2d").then((m) => ({ default: (m as any).default ?? m })) as any, { ssr: false });
 
 const NODE_COLORS: Record<string, string> = {
   concept: "#3b82f6",
