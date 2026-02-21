@@ -26,7 +26,6 @@ export function SplashScreen() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <div className="relative flex flex-col items-center gap-4">
         <img src="/logo.png" alt="Learned logo" className="w-40 h-40 object-contain rounded-2xl shadow-lg" />
-        <p className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Welcome to Learned</p>
       </div>
     </div>
   );
