@@ -10,8 +10,8 @@ export function SplashScreen() {
     if (sessionStorage.getItem("splashShown")) return;
     sessionStorage.setItem("splashShown", "1");
     setVisible(true);
-    const t1 = setTimeout(() => setFading(true), 1800);
-    const t2 = setTimeout(() => setVisible(false), 2500);
+    const t1 = setTimeout(() => setFading(true), 3000);
+    const t2 = setTimeout(() => setVisible(false), 3700);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
@@ -24,7 +24,10 @@ export function SplashScreen() {
     >
       <div className="absolute inset-0 bg-[#fffcf6]" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="Learned logo" className="relative w-40 h-40 object-contain rounded-2xl shadow-lg" />
+      <div className="relative flex flex-col items-center gap-4">
+        <img src="/logo.png" alt="Learned logo" className="w-40 h-40 object-contain rounded-2xl shadow-lg" />
+        <p className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Welcome to Learned</p>
+      </div>
     </div>
   );
 }
