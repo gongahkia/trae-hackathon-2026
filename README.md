@@ -35,28 +35,15 @@
 
 ## Quickstart
 
-Prereqs
-- Node.js 18+
-- A Hedera testnet account (Account ID + Ed25519 private key)
-- An ECDSA private key (0x… hex) for EVM transactions (ethers/Hardhat)
-
-1) Configure environment
-
-Copy .env.example to .env and fill these minimum values (root of repo):
-
-```env
-# Network and RPC
-HEDERA_NETWORK=testnet
-RPC_URL=https://testnet.hashio.io/api
-MIRROR_NODE_URL=https://testnet.m
-
-## Usage 
-
 Run this on the frontend.
 
-npm install && npm run dev
+```console
+$ npm install && npm run dev
+``` 
 
 Run this on the backend. 
 
-python3 -m venv .venv && source .venv/bin/activate 
-uvicorn src.main:app --reload --port 8000
+```console
+$ python3 -m venv .venv && source .venv/bin/activate
+$ uvicorn src.main:app --reload --port 8000
+``` 
