@@ -41,8 +41,8 @@ class GeminiProvider(LLMProvider):
 
 
 class MinimaxProvider(LLMProvider):
-    def __init__(self):
-        self.api_key = os.getenv("MINIMAX_API_KEY")
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.getenv("MINIMAX_API_KEY")
         if not self.api_key:
             raise ValueError("MINIMAX_API_KEY not set")
         self.base_url = "https://api.minimax.chat/v1/text/chatcompletion_v2"
