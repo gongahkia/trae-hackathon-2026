@@ -4,8 +4,6 @@ import { useRef, useState } from "react";
 import { Post } from "@/lib/types";
 import { useSessionStore } from "@/store/session";
 import {
-  ArrowUp,
-  ArrowDown,
   Heart,
   Bookmark,
   MessageCircle,
@@ -72,7 +70,6 @@ export function PostCard({ post, platform, condensed = false, highlighted = fals
   const [showHideDialog, setShowHideDialog] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [isHiding, setIsHiding] = useState(false);
-  const [isDownvoted, setIsDownvoted] = useState(false);
   const touchStartY = useRef<number | null>(null);
   const touchDeltaY = useRef(0);
 
@@ -86,26 +83,8 @@ export function PostCard({ post, platform, condensed = false, highlighted = fals
   const { toast } = useToast();
 
   const handleLike = () => {
-    if (isDownvoted) { // clear downvote first
-      setLocalUpvotes((prev) => prev + 1);
-      setIsDownvoted(false);
-    }
     setLocalUpvotes((prev) => Math.max(0, prev + (isLiked ? -1 : 1)));
     toggleLike(post.id);
-  };
-
-  const handleDownvote = () => {
-    if (isLiked) { // clear like first
-      setLocalUpvotes((prev) => prev - 1);
-      toggleLike(post.id);
-    }
-    if (!isDownvoted) {
-      setLocalUpvotes((prev) => Math.max(0, prev - 1));
-      setIsDownvoted(true);
-    } else {
-      setLocalUpvotes((prev) => prev + 1);
-      setIsDownvoted(false);
-    }
   };
 
   const handleSave = () => {
@@ -255,74 +234,58 @@ export function PostCard({ post, platform, condensed = false, highlighted = fals
 
   // ── Reddit ──────────────────────────────────────────────────────────────────
   if (platform === "reddit") {
-    const voteColor = isLiked ? "text-orange-500" : isDownvoted ? "text-blue-500" : "text-gray-500";
     return (
       <Card className={`mb-4 border-gray-200 transition-opacity duration-300 ${isHiding ? "opacity-0" : "opacity-100"} ${highlighted ? "ring-2 ring-blue-500" : ""} sm:rounded-lg rounded-none`}>
-        <div className="flex">
-          {/* vote sidebar */}
-          <div className="w-10 flex flex-col items-center py-3 gap-0.5 bg-gray-50 rounded-l-lg">
+        <CardHeader className="pb-1 pt-3">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap">
+            <span className="font-semibold text-gray-800">r/Learn</span>
+            <span>·</span>
+            <span>Posted by {post.author_handle}</span>
+            <span>·</span>
+            <span>{post.timestamp}</span>
+          </div>
+          <span className={`mt-1 self-start text-xs px-2 py-0.5 rounded-full ${typeConfig.color}`}>
+            {typeConfig.emoji} {typeConfig.label}
+          </span>
+        </CardHeader>
+        <CardContent className="pt-1">
+          <h3 className="font-semibold text-base mb-1.5 leading-snug">{post.title}</h3>
+          <p className={`text-sm text-gray-600 ${!expanded ? "line-clamp-3" : ""}`}>{post.body}</p>
+          {post.body.length > 150 && (
+            <button onClick={() => setExpanded(!expanded)}
+              className="text-blue-500 text-xs mt-1 flex items-center gap-1">
+              {expanded ? <><ChevronUp size={13} /> Show less</> : <><ChevronDown size={13} /> Read more</>}
+            </button>
+          )}
+          <div className="flex items-center gap-1 mt-3 text-gray-500 text-xs -ml-1">
             <button onClick={handleLike}
-              className={`p-1 rounded hover:bg-gray-200 transition-colors ${isLiked ? "text-orange-500" : "text-gray-400 hover:text-orange-400"}`}>
-              <ArrowUp size={18} />
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-100 transition-colors ${isLiked ? "text-red-500" : ""}`}>
+              <Heart size={16} fill={isLiked ? "currentColor" : "none"} />
+              <span>{formatCount(localUpvotes)}</span>
             </button>
-            <span className={`text-xs font-bold ${voteColor}`}>{formatCount(localUpvotes)}</span>
-            <button onClick={handleDownvote}
-              className={`p-1 rounded hover:bg-gray-200 transition-colors ${isDownvoted ? "text-blue-500" : "text-gray-400 hover:text-blue-400"}`}>
-              <ArrowDown size={18} />
+            <button onClick={() => setShowComments(true)}
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-100 transition-colors">
+              <MessageCircle size={16} />
+              <span>{post.comments.length} Comments</span>
             </button>
+            <button className="flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-100 transition-colors">
+              <Share size={16} />
+              <span>Share</span>
+            </button>
+            <button onClick={handleSave}
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-100 transition-colors ${isSaved ? "text-blue-500" : ""}`}>
+              <Bookmark size={16} fill={isSaved ? "currentColor" : "none"} />
+              <span>Save</span>
+            </button>
+            {hideDialog(
+              <button className="flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-100 transition-colors">
+                <X size={16} /><span>Hide</span>
+              </button>,
+              "Why don't you want to see this?"
+            )}
           </div>
-          {/* content */}
-          <div className="flex-1 min-w-0">
-            <CardHeader className="pb-1 pt-3">
-              {/* subreddit + meta */}
-              <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap">
-                <span className="font-semibold text-gray-800">r/Learn</span>
-                <span>·</span>
-                <span>Posted by {post.author_handle}</span>
-                <span>·</span>
-                <span>{post.timestamp}</span>
-              </div>
-              {/* post type badge */}
-              <span className={`mt-1 self-start text-xs px-2 py-0.5 rounded-full ${typeConfig.color}`}>
-                {typeConfig.emoji} {typeConfig.label}
-              </span>
-            </CardHeader>
-            <CardContent className="pt-1">
-              <h3 className="font-semibold text-base mb-1.5 leading-snug">{post.title}</h3>
-              <p className={`text-sm text-gray-600 ${!expanded ? "line-clamp-3" : ""}`}>{post.body}</p>
-              {post.body.length > 150 && (
-                <button onClick={() => setExpanded(!expanded)}
-                  className="text-blue-500 text-xs mt-1 flex items-center gap-1">
-                  {expanded ? <><ChevronUp size={13} /> Show less</> : <><ChevronDown size={13} /> Read more</>}
-                </button>
-              )}
-              {/* action row */}
-              <div className="flex items-center gap-1 mt-3 text-gray-500 text-xs -ml-1">
-                <button onClick={() => setShowComments(true)}
-                  className="flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-100 transition-colors">
-                  <MessageCircle size={16} />
-                  <span>{post.comments.length} Comments</span>
-                </button>
-                <button className="flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-100 transition-colors">
-                  <Share size={16} />
-                  <span>Share</span>
-                </button>
-                <button onClick={handleSave}
-                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-100 transition-colors ${isSaved ? "text-blue-500" : ""}`}>
-                  <Bookmark size={16} fill={isSaved ? "currentColor" : "none"} />
-                  <span>Save</span>
-                </button>
-                {hideDialog(
-                  <button className="flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-gray-100 transition-colors">
-                    <X size={16} /><span>Hide</span>
-                  </button>,
-                  "Why don't you want to see this?"
-                )}
-              </div>
-              {renderCitations(post.citations)}
-            </CardContent>
-          </div>
-        </div>
+          {renderCitations(post.citations)}
+        </CardContent>
         {commentsSheet}
       </Card>
     );
