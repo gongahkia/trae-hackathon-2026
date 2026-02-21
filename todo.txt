@@ -1,0 +1,159 @@
+# DOOMLEARN - Doomscroll Learning App PRD
+# Hackathon Build | Next.js (Frontend) + FastAPI (Backend) | No Auth | No DB
+# Generated: 2025-02-21
+# Legend: (A) = MVP/Critical Path | +tags = modules
+
+# ============================================================
+# +backend SETUP
+# ============================================================
+(A) Initialize FastAPI project with /app directory structure using src layout and uvicorn entry point +backend
+(A) Install and configure python-dotenv for GEMINI_API_KEY and MINIMAX_API_KEY environment variables +backend
+(A) Create LLM provider abstraction class with a generate(prompt: str) -> str interface supporting Gemini and Minimax as interchangeable backends +backend
+(A) Implement Gemini provider using google-generativeai SDK targeting gemini-1.5-flash free tier model with retry logic on 429 rate limit errors +backend
+(A) Implement Minimax provider using requests to Minimax Chat Completions API as fallback when Gemini fails or rate-limits +backend
+(A) Add provider selection logic: default to Gemini, auto-fallback to Minimax on exception, log which provider was used per request +backend
+(A) Configure CORS in FastAPI to allow requests from localhost:3000 and any deployed Vercel domain +backend
+(A) Install and configure pypdf2 or pdfplumber for extracting raw text from uploaded PDF files +backend
+(A) Install playwright or httpx + beautifulsoup4 for fetching and extracting readable text content from URLs +backend
+
+# ============================================================
+# +ingestion PIPELINE
+# ============================================================
+(A) Create POST /api/ingest/text endpoint accepting { prompt: string } and returning { session_id, source_text } +ingestion +backend
+(A) Create POST /api/ingest/pdf endpoint accepting multipart/form-data PDF upload, extract full text with pdfplumber, return { session_id, source_text, page_count } +ingestion +backend
+(A) Create POST /api/ingest/url endpoint accepting { url: string }, fetch HTML with httpx, extract main article text using beautifulsoup4 readability heuristic (remove nav/footer/ads), return { session_id, source_text } +ingestion +backend
+(A) Add input for POST /api/ingest/url: accept { url: string, restrict_to_document: boolean } — if restrict_to_document is false, append a note to source_text instructing LLM it may supplement with general knowledge +ingestion +backend
+(A) Validate PDF upload size max 10MB and file type is application/pdf, return 400 with descriptive error if invalid +ingestion +backend
+(A) Validate URL input with httpx head request to confirm URL is reachable before scraping, return 422 if unreachable +ingestion +backend
+(A) Store session context in-memory using a Python dict keyed by session_id (uuid4) containing source_text, platform, and generated_posts +ingestion +backend
+(A) Create GET /api/session/{session_id} endpoint returning the full session data for frontend state rehydration on page refresh +ingestion +backend
+
+# ============================================================
+# +generation FEED GENERATION
+# ============================================================
+(A) Create POST /api/generate/feed endpoint accepting { session_id, platform: "reddit"|"twitter", post_count: 10 } +generation +backend
+(A) Write system prompt for feed generation that instructs LLM to act as a social feed generator producing exactly 10 posts as a JSON array +generation +backend
+(A) Define PostSchema: { id, platform, post_type: "question"|"creator"|"rant"|"listicle", title, body, author_handle, upvotes, timestamp, citations: string[], comments: Comment[] } +generation +backend
+(A) Define CommentSchema: { id, author_handle, body, upvotes, citations: string[] } +generation +backend
+(A) In feed generation prompt, enforce post_type diversity: at minimum 2 question posts, 2 creator posts, 1 rant post, 1 listicle, rest randomized +generation +backend
+(A) For question-type posts, pre-generate 3-5 comments in the same LLM call with the answer revealed progressively in comment thread order +generation +backend
+(A) For non-question post types (creator, rant, listicle), generate 2-3 comments that add tangential insights or debate +generation +backend
+(A) Instruct LLM in prompt to derive citations from the source_text document title/section or from its training knowledge, formatted as "Source: [title or domain]" strings +generation +backend
+(A) Instruct LLM to generate realistic synthetic author_handle names that match the platform style (Reddit: u/snake_case, Twitter: @CamelCase) +generation +backend
+(A) Instruct LLM to generate plausible upvote counts: questions 500-5000, rants 1000-20000, listicles 2000-15000, creator posts 300-3000 +generation +backend
+(A) Parse LLM JSON response with json.loads, validate against PostSchema using pydantic, retry once if parsing fails +generation +backend
+(A) Store generated posts array in session memory under session_id for later retrieval +generation +backend
+(A) Return generated feed as { session_id, posts: Post[], platform } from POST /api/generate/feed +generation +backend
+
+# ============================================================
+# +generation RECOMMENDATIONS GENERATION
+# ============================================================
+(A) Create POST /api/generate/recommendations endpoint accepting { session_id } +generation +backend
+(A) Write prompt instructing LLM to generate 5 follow-up single-text-prompt suggestions based on the source_text topics, formatted as a JSON array of strings +generation +backend
+(A) Return recommendations as { recommendations: string[] } — each string should be a ready-to-use prompt (e.g. "How does analog audio signal chain work?") +generation +backend
+
+# ============================================================
+# +frontend SETUP
+# ============================================================
+(A) Initialize Next.js 14 app with App Router, TypeScript, and Tailwind CSS +frontend
+(A) Install shadcn/ui and initialize with default theme for rapid component scaffolding +frontend
+(A) Install lucide-react for icons (Heart, Bookmark, X, MessageCircle, Share2, ArrowUp) +frontend
+(A) Create .env.local with NEXT_PUBLIC_API_URL=http://localhost:8000 +frontend
+(A) Create lib/api.ts with typed fetch wrapper functions for all FastAPI endpoints: ingestText, ingestPdf, ingestUrl, generateFeed, generateRecommendations +frontend
+(A) Define TypeScript interfaces Post, Comment, Session matching the backend PostSchema and CommentSchema exactly +frontend
+(A) Create Zustand store (useSessionStore) holding: sessionId, sourceText, platform, posts, savedPosts, hiddenPostIds, likedPostIds, dislikedReasons +frontend
+(A) Persist Zustand store to localStorage so feed state survives page refresh without auth +frontend
+
+# ============================================================
+# +frontend ONBOARDING / INPUT PAGE
+# ============================================================
+(A) Create app/page.tsx as the landing/input page with three tabs: "Topic", "PDF", "URL" using shadcn Tabs component +frontend
+(A) Build Topic tab: single textarea accepting free-text prompt with placeholder "e.g. Beginner's guide to vinyl record player audio setup" +frontend
+(A) Build PDF tab: drag-and-drop file upload zone using react-dropzone accepting only .pdf files, showing file name and size on selection +frontend
+(A) Build URL tab: text input for URL entry with a toggle switch labeled "Allow additional knowledge beyond this page" (maps to restrict_to_document) +frontend
+(A) Add platform selector on the input page: two cards "Reddit" and "Twitter/X" with platform-appropriate iconography, single select +frontend
+(A) Validate all three input tabs on submit: Topic requires non-empty string, PDF requires file present, URL requires valid URL format +frontend
+(A) On form submit, call appropriate ingest endpoint, then immediately call generateFeed, show full-page loading skeleton with copy "Generating your feed..." +frontend
+(A) On successful feed generation, navigate to app/feed/[sessionId]/page.tsx with sessionId in URL +frontend
+
+# ============================================================
+# +frontend FEED PAGE - LAYOUT & SCROLL
+# ============================================================
+(A) Create app/feed/[sessionId]/page.tsx that loads session from Zustand store or fetches from GET /api/session/{session_id} if store is empty +frontend
+(A) Render feed as a vertically scrolling single-column list of PostCard components, max-width 600px centered, mimicking Reddit/Twitter layout based on platform selection +frontend
+(A) Apply Reddit visual theme when platform=reddit: card with border, upvote arrow on left, subreddit header style (r/LearnAudio) +frontend
+(A) Apply Twitter/X visual theme when platform=twitter: borderless card, circular avatar, like/retweet/bookmark action row at bottom +frontend
+(A) Show a "You've reached the end" state after the last post card with recommendations section below it +frontend
+
+# ============================================================
+# +frontend POST CARD COMPONENT
+# ============================================================
+(A) Create components/PostCard.tsx accepting a Post prop and rendering title, body (truncated to 3 lines with expand), author_handle, upvotes, post_type badge, and citations list +frontend
+(A) Render citations as small grey text links at bottom of PostCard, prefixed with "Source:" +frontend
+(A) Add post_type visual badge on PostCard: "Question ❓", "Creator 🎙", "Rant 🔥", "Listicle 📋" with distinct color per type +frontend
+(A) Implement Like button on PostCard: clicking increments local upvote count, adds post.id to likedPostIds in Zustand store, animates heart/upvote icon +frontend
+(A) Implement Save button on PostCard: clicking toggles saved state, adds/removes post from savedPosts in Zustand store, bookmark icon fills on save +frontend
+(A) Implement "Don't show me this" button on PostCard (three-dot menu or X icon): clicking opens a modal asking "Why?" with options: "Already know this", "Not relevant", "Too basic", "Too advanced" +frontend
+(A) On "Don't show me this" confirmation, add post.id to hiddenPostIds and selected reason to dislikedReasons in Zustand, hide PostCard from feed with fade-out animation +frontend
+(A) Do not re-render hidden posts — filter hiddenPostIds out of the displayed posts array in feed page +frontend
+
+# ============================================================
+# +frontend COMMENTS DRAWER
+# ============================================================
+(A) On click of comment icon or "X comments" text on PostCard, open a bottom sheet drawer (shadcn Sheet component) showing the pre-generated comments +frontend
+(A) For question-type posts, render comments in a threaded style with the answer revealed sequentially — first comment sets up context, subsequent comments deepen explanation +frontend
+(A) For non-question posts, render flat comment list with author handles, upvotes, body, and citations per comment +frontend
+(A) Show comment count badge on the comment icon of each PostCard +frontend
+(A) Close drawer on backdrop click or swipe-down gesture (add touch event handler for mobile) +frontend
+
+# ============================================================
+# +frontend SAVED POSTS PAGE
+# ============================================================
+(A) Create app/saved/page.tsx listing all posts in savedPosts Zustand array as condensed PostCard components (no comment drawer, just title + citations) +frontend
+(A) Add navigation link to Saved page from feed page header +frontend
+(A) Show empty state illustration with copy "Save posts to revisit key insights" when savedPosts is empty +frontend
+(A) Group saved posts by session (source document/prompt) using sessionId, show source label as section header +frontend
+
+# ============================================================
+# +frontend RECOMMENDATIONS
+# ============================================================
+(A) Create components/Recommendations.tsx rendered at the bottom of the feed page after last post +frontend
+(A) Fetch recommendations from POST /api/generate/recommendations on feed page mount (after posts load), display as horizontal scroll cards +frontend
+(A) Each recommendation card shows the suggested prompt text and a "Explore →" button +frontend
+(A) Clicking "Explore →" on a recommendation card pre-fills the Topic tab on the input page with that prompt text and navigates back to app/page.tsx +frontend
+
+# ============================================================
+# +frontend HISTORY PAGE
+# ============================================================
+(B) Create app/history/page.tsx listing all past sessions stored in localStorage with session source label, platform badge, post count, and timestamp +frontend
+(B) Each history item is clickable and navigates to app/feed/[sessionId]/page.tsx, rehydrating from localStorage session data +frontend
+(B) Add "New Feed" button on history page navigating to app/page.tsx +frontend
+
+# ============================================================
+# +generation KNOWLEDGE GRAPH (Nice to Have)
+# ============================================================
+(B) Create POST /api/generate/knowledge-graph endpoint accepting { session_id } and returning a graph structure { nodes: Node[], edges: Edge[] } extracted from post topics and their relationships +generation +backend
+(B) Define NodeSchema: { id, label, type: "concept"|"person"|"tool"|"event", post_ids: string[] } and EdgeSchema: { source, target, relationship: string } +generation +backend
+(B) Write LLM prompt to extract key concepts from all 10 posts and map relationships between them into a valid JSON graph +generation +backend
+(B) Create app/graph/[sessionId]/page.tsx rendering the knowledge graph using react-force-graph-2d or a Cytoscape.js canvas +frontend
+(B) Clicking a node in the knowledge graph highlights the related PostCards in the feed view and scrolls to the first matching post +frontend
+(B) Add "Knowledge Graph" button in feed page header navigating to app/graph/[sessionId]/page.tsx +frontend
+
+# ============================================================
+# +backend QUALITY & RESILIENCE
+# ============================================================
+(A) Add request timeout of 30s on all LLM calls, return 504 with "Generation timed out, please retry" if exceeded +backend
+(A) Add pydantic BaseModel validation on all FastAPI request bodies, returning 422 with field-level error messages on invalid input +backend
+(A) Add global FastAPI exception handler returning { error: string, detail: string } JSON on all unhandled exceptions +backend
+(A) Cap source_text to 12000 characters before injecting into LLM prompt to avoid context window overflow, truncating with a note "[Document truncated for context]" +backend
+(A) Add /api/health GET endpoint returning { status: "ok", providers: ["gemini", "minimax"] } for frontend connectivity check on load +backend
+
+# ============================================================
+# +frontend QUALITY & UX
+# ============================================================
+(A) Show toast notification (shadcn Toast) on save action: "Post saved ✓" and on hide action: "Post hidden" +frontend
+(A) Show full-page error state with retry button if generateFeed API call fails, displaying the error message from backend +frontend
+(A) Add skeleton loader cards (3 animated grey cards) while feed is generating to prevent layout shift +frontend
+(A) Make feed page responsive: on mobile (<640px) remove card padding, full-width cards; on desktop center at 600px max-width +frontend
+(A) Add scroll-to-top FAB (Floating Action Button) button on feed page visible after scrolling past 3 posts +frontend
+(A) Implement optimistic UI for like/save — update Zustand state immediately on click without waiting for any network call +frontend
