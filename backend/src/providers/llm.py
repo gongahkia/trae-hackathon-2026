@@ -29,7 +29,7 @@ class GeminiProvider(LLMProvider):
         for attempt in range(2):
             try:
                 response = self.client.models.generate_content(
-                    model='gemini-2.0-flash',
+                    model='gemini-2.5-flash',
                     contents=prompt
                 )
                 return response.text
@@ -53,18 +53,24 @@ class MinimaxProvider(LLMProvider):
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "abab6.5s-chat",
+            "model": "MiniMax-Text-01",
             "messages": [{"role": "user", "content": prompt}]
         }
         for attempt in range(2):
             try:
-                response = requests.post(self.base_url, json=payload, headers=headers, timeout=30)
+                response = requests.post(self.base_url, json=payload, headers=headers, timeout=120)
                 response.raise_for_status()
                 data = response.json()
-                if "choices" not in data:
-                    logger.error(f"Minimax response missing 'choices': {data}")
-                    raise KeyError(f"'choices' not in response: {data}")
-                return data["choices"][0]["message"]["content"]
+                logger.info(f"Minimax raw response: {data}")
+                choices = data.get("choices") if isinstance(data, dict) else None
+                if not choices:
+                    raise ValueError(f"Minimax bad response: {data}")
+                first = choices[0] or {}
+                msg = first.get("message") or {}
+                text = msg.get("content") if isinstance(msg, dict) else None
+                if not text:
+                    raise ValueError(f"Minimax no content in: {first}")
+                return text
             except Exception as e:
                 logger.warning(f"Minimax attempt {attempt + 1} failed: {e}")
                 if attempt == 1:

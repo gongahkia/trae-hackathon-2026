@@ -49,7 +49,7 @@ export function PostCard({ post, platform }: PostCardProps) {
 
   const isLiked = likedPostIds.includes(post.id);
   const isSaved = savedPosts.some((p) => p.id === post.id);
-  const typeConfig = postTypeConfig[post.post_type];
+  const typeConfig = postTypeConfig[post.post_type] ?? { label: post.post_type, emoji: "📝", color: "bg-gray-100 text-gray-800" };
 
   const handleLike = () => {
     toggleLike(post.id);
