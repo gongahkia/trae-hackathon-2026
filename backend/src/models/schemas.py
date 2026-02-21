@@ -69,6 +69,10 @@ class FeedGenerateResponse(BaseModel):
     platform: str
 
 
+class RecommendationsRequest(BaseModel):
+    session_id: str
+
+
 class RecommendationsResponse(BaseModel):
     recommendations: List[str]
 
