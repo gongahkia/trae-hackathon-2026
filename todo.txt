@@ -15,6 +15,7 @@
 (A) Group saved posts by session (source document/prompt) using sessionId, show source label as section header +frontend
 (A) Create components/Recommendations.tsx rendered at the bottom of the feed page after last post +frontend
 (A) Each recommendation card shows the suggested prompt text and a "Explore →" button +frontend
+(A) Optimise the entire display to be for a mobile screen
 
 # ============================================================
 # +generation KNOWLEDGE GRAPH (Nice to Have)
