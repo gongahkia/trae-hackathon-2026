@@ -29,7 +29,7 @@ class GeminiProvider(LLMProvider):
         for attempt in range(2):
             try:
                 response = self.client.models.generate_content(
-                    model='gemini-1.5-flash',
+                    model='gemini-2.0-flash',
                     contents=prompt
                 )
                 return response.text
@@ -45,7 +45,7 @@ class MinimaxProvider(LLMProvider):
         self.api_key = api_key or os.getenv("MINIMAX_API_KEY")
         if not self.api_key:
             raise ValueError("MINIMAX_API_KEY not set")
-        self.base_url = "https://api.minimax.chat/v1/text/chatcompletion_v2"
+        self.base_url = "https://api.minimaxi.chat/v1/text/chatcompletion_v2"
 
     def generate(self, prompt: str) -> str:
         headers = {
@@ -61,6 +61,9 @@ class MinimaxProvider(LLMProvider):
                 response = requests.post(self.base_url, json=payload, headers=headers, timeout=30)
                 response.raise_for_status()
                 data = response.json()
+                if "choices" not in data:
+                    logger.error(f"Minimax response missing 'choices': {data}")
+                    raise KeyError(f"'choices' not in response: {data}")
                 return data["choices"][0]["message"]["content"]
             except Exception as e:
                 logger.warning(f"Minimax attempt {attempt + 1} failed: {e}")
