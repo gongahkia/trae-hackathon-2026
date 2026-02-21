@@ -291,6 +291,7 @@ export function PostCard({ post, platform }: PostCardProps) {
           </div>
         )}
       </CardContent>
+      {commentsDialog}
     </Card>
   );
 }
