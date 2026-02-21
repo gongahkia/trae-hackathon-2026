@@ -1,10 +1,11 @@
 import json
 import uuid
 import logging
-from fastapi import APIRouter, HTTPException
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Header
 from src.models.schemas import (
     FeedGenerateRequest, FeedGenerateResponse,
-    RecommendationsResponse
+    RecommendationsRequest, RecommendationsResponse
 )
 from src.services.session import get_session, update_session_posts
 from src.providers.llm import llm_manager

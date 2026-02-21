@@ -88,17 +88,30 @@ class LLMManager:
         except Exception as e:
             logger.warning(f"Minimax provider unavailable: {e}")
 
-    def generate(self, prompt: str) -> tuple[str, str]:
-        if self.gemini:
+    def generate(self, prompt: str, gemini_key: Optional[str] = None, minimax_key: Optional[str] = None) -> tuple[str, str]:
+        active_gemini = self.gemini
+        active_minimax = self.minimax
+        if gemini_key:
             try:
-                result = self.gemini.generate(prompt)
+                active_gemini = GeminiProvider(api_key=gemini_key)
+            except Exception as e:
+                logger.warning(f"Could not init Gemini with provided key: {e}")
+        if minimax_key:
+            try:
+                active_minimax = MinimaxProvider(api_key=minimax_key)
+            except Exception as e:
+                logger.warning(f"Could not init Minimax with provided key: {e}")
+
+        if active_gemini:
+            try:
+                result = active_gemini.generate(prompt)
                 return result, "gemini"
             except Exception as e:
                 logger.warning(f"Gemini failed, falling back to Minimax: {e}")
 
-        if self.minimax:
+        if active_minimax:
             try:
-                result = self.minimax.generate(prompt)
+                result = active_minimax.generate(prompt)
                 return result, "minimax"
             except Exception as e:
                 logger.error(f"Minimax also failed: {e}")
