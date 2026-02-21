@@ -100,6 +100,11 @@ export default function FeedPage() {
                 <Plus size={18} />
               </Button>
             </Link>
+            <Link href="/settings">
+              <Button variant="ghost" size="sm">
+                <Settings size={18} />
+              </Button>
+            </Link>
           </div>
         </div>
       </header>

@@ -42,6 +42,7 @@ const postTypeConfig = {
 export function PostCard({ post, platform }: PostCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [showHideDialog, setShowHideDialog] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   const { likedPostIds, toggleLike, savedPosts, addSavedPost, removeSavedPost, hidePost } =
     useSessionStore();
@@ -73,6 +74,36 @@ export function PostCard({ post, platform }: PostCardProps) {
     }
     return num.toString();
   };
+
+  const commentsDialog = (
+    <Dialog open={showComments} onOpenChange={setShowComments}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{post.comments.length} Comment{post.comments.length !== 1 ? "s" : ""}</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-4 mt-2 max-h-96 overflow-y-auto">
+          {post.comments.length === 0 ? (
+            <p className="text-sm text-gray-500">No comments yet.</p>
+          ) : (
+            post.comments.map((comment) => (
+              <div key={comment.id} className="border-b pb-3 last:border-0">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium">{comment.author_handle}</span>
+                  <span className="text-xs text-gray-400">↑ {comment.upvotes}</span>
+                </div>
+                <p className="text-sm text-gray-700">{comment.body}</p>
+                {comment.citations.length > 0 && (
+                  <div className="mt-1 text-xs text-gray-400">
+                    {comment.citations.map((cit, i) => <div key={i}>{cit}</div>)}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   if (platform === "reddit") {
     return (
@@ -120,7 +151,7 @@ export function PostCard({ post, platform }: PostCardProps) {
                 </button>
               )}
               <div className="flex items-center gap-4 mt-3">
-                <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
+                <button onClick={() => setShowComments(true)} className="flex items-center gap-1 text-gray-500 hover:text-gray-700">
                   <MessageCircle size={18} />
                   <span>{post.comments.length} comments</span>
                 </button>
