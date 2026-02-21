@@ -13,6 +13,10 @@ export function SplashScreen() {
     return () => clearTimeout(t);
   }, []);
 
+  const dismiss = () => {
+    if (phase === "show") setPhase("fade");
+  }, []);
+
   if (phase === "hidden") return null;
   return (
     <div
