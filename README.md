@@ -1,5 +1,7 @@
 # Learned 
 
+Transforms PDFs, Web URLs and text prompts into scrollable social media feeds *(Reddit, X)*.
+
 ## Team members
 
 <table>
