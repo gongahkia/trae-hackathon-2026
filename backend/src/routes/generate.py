@@ -90,7 +90,7 @@ async def generate_feed(
     except json.JSONDecodeError as e:
         logger.warning(f"JSON parse failed, retrying: {e}")
         try:
-            response_text, _ = llm_manager.generate(prompt)
+            response_text, _ = llm_manager.generate(prompt, gemini_key=x_gemini_api_key, minimax_key=x_minimax_api_key)
             json_match = response_text.strip()
             if "```" in json_match:
                 json_match = json_match.split("```")[1]
@@ -112,7 +112,11 @@ async def generate_feed(
 
 
 @router.post("/api/generate/recommendations", response_model=RecommendationsResponse)
-async def generate_recommendations(request: FeedGenerateRequest):
+async def generate_recommendations(
+    request: RecommendationsRequest,
+    x_gemini_api_key: Optional[str] = Header(None),
+    x_minimax_api_key: Optional[str] = Header(None),
+):
     session = get_session(request.session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
