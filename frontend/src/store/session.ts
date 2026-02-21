@@ -27,6 +27,7 @@ interface SessionStore {
   history: SessionData[];
   geminiApiKey: string;
   minimaxApiKey: string;
+  highlightedPostIds: string[];
 
   setSession: (sessionId: string, sourceText: string, platform: "reddit" | "twitter", posts: Post[]) => void;
   addSavedPost: (post: Post) => void;
@@ -36,6 +37,8 @@ interface SessionStore {
   addToHistory: (sessionData: SessionData) => void;
   setGeminiApiKey: (key: string) => void;
   setMinimaxApiKey: (key: string) => void;
+  setHighlightedPosts: (ids: string[]) => void;
+  clearHighlights: () => void;
   reset: () => void;
 }
 
@@ -53,6 +56,7 @@ export const useSessionStore = create<SessionStore>()(
       history: [],
       geminiApiKey: "",
       minimaxApiKey: "",
+      highlightedPostIds: [],
 
       setSession: (sessionId, sourceText, platform, posts) =>
         set({ sessionId, sourceText, platform, posts }),
@@ -93,6 +97,8 @@ export const useSessionStore = create<SessionStore>()(
 
       setGeminiApiKey: (key) => set({ geminiApiKey: key }),
       setMinimaxApiKey: (key) => set({ minimaxApiKey: key }),
+      setHighlightedPosts: (ids) => set({ highlightedPostIds: ids }),
+      clearHighlights: () => set({ highlightedPostIds: [] }),
 
       reset: () =>
         set({

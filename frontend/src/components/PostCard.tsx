@@ -38,6 +38,7 @@ interface PostCardProps {
   post: Post;
   platform: "reddit" | "twitter";
   condensed?: boolean;
+  highlighted?: boolean;
 }
 
 const postTypeConfig = {
@@ -47,7 +48,7 @@ const postTypeConfig = {
   listicle: { label: "Listicle", emoji: "📋", color: "bg-green-100 text-green-800" },
 };
 
-export function PostCard({ post, platform, condensed = false }: PostCardProps) {
+export function PostCard({ post, platform, condensed = false, highlighted = false }: PostCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [showHideDialog, setShowHideDialog] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -236,7 +237,7 @@ export function PostCard({ post, platform, condensed = false }: PostCardProps) {
 
   if (platform === "reddit") {
     return (
-      <Card className={`mb-4 border-gray-200 transition-opacity duration-300 ${isHiding ? "opacity-0" : "opacity-100"} sm:rounded-lg rounded-none`}>
+      <Card className={`mb-4 border-gray-200 transition-opacity duration-300 ${isHiding ? "opacity-0" : "opacity-100"} ${highlighted ? "ring-2 ring-blue-500" : ""} sm:rounded-lg rounded-none`}>
         <div className="flex">
           <div className="w-10 flex flex-col items-center p-3 bg-gray-50 rounded-l-lg">
             <button
