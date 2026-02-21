@@ -150,6 +150,49 @@ export function PostCard({ post, platform, condensed = false, highlighted = fals
     );
   };
 
+  const renderListicleBody = (body: string) => {
+    const lines = body.split("\n").map((l) => l.trim()).filter(Boolean);
+    const isListItem = (l: string) => /^(\d+[\.\)]|[-•*])\s/.test(l);
+    if (!lines.some(isListItem)) return <p className="text-sm text-gray-600">{body}</p>;
+    return (
+      <ol className="text-sm text-gray-600 space-y-1.5 list-none pl-0">
+        {lines.map((line, i) => {
+          const stripped = line.replace(/^(\d+[\.\)]|[-•*])\s+/, "");
+          const num = line.match(/^(\d+)/)?.[1];
+          return (
+            <li key={i} className="flex gap-2 items-start">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center" style={{ background: "var(--accent)", color: "#fff" }}>
+                {num ?? "•"}
+              </span>
+              <span>{stripped}</span>
+            </li>
+          );
+        })}
+      </ol>
+    );
+  };
+
+  const renderPollBody = (body: string) => {
+    const lines = body.split("\n").map((l) => l.trim()).filter(Boolean);
+    const optionLines = lines.filter((l) => /^([A-D][\)\.]|[•\-])\s/.test(l));
+    const preamble = lines.filter((l) => !/^([A-D][\)\.]|[•\-])\s/.test(l)).join(" ");
+    return (
+      <div className="space-y-2">
+        {preamble && <p className="text-sm text-gray-600">{preamble}</p>}
+        {optionLines.length > 0 && (
+          <div className="space-y-1.5 mt-2">
+            {optionLines.map((opt, i) => (
+              <div key={i} className="px-3 py-2 rounded-lg border text-sm font-medium cursor-default select-none" style={{ borderColor: "var(--accent)", color: "var(--foreground)" }}>
+                {opt}
+              </div>
+            ))}
+          </div>
+        )}
+        {optionLines.length === 0 && <p className="text-sm text-gray-600">{body}</p>}
+      </div>
+    );
+  };
+
   const renderComments = () => {
     if (post.comments.length === 0) return <p className="text-sm text-gray-500">No comments yet.</p>;
     if (post.post_type === "question") {
