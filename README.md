@@ -17,7 +17,7 @@ Transforms PDFs, Web URLs and text prompts into scrollable social media feeds *(
             </td>
             <td align="center">
                 <a href="https://github.com/kopicplusplus">
-                    <img src="https://avatars.githubusercontent.com/u/206502697?v=4" width="100;" alt=""/>
+                    <img src="https://avatars.githubusercontent.com/u/262940233?v=4" width="100;" alt=""/>
                     <br />
                     <sub><b>Keith Tang</b></sub>
                 </a>
@@ -25,7 +25,7 @@ Transforms PDFs, Web URLs and text prompts into scrollable social media feeds *(
             </td>
             <td align="center">
                 <a href="https://github.com/a-stint">
-                    <img src="https://avatars.githubusercontent.com/u/107232374?v=4" width="100;" alt=""/>
+                    <img src="https://avatars.githubusercontent.com/u/149822619?v=4" width="100;" alt=""/>
                     <br />
                     <sub><b>Astin Tay</b></sub>
                 </a>
